@@ -1,0 +1,62 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  developer
+  recruiter
+  admin
+}
+
+enum Status {
+  planning
+  in_progress
+  completed
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(developer)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  profile      Profile?
+
+  @@map("users")
+}
+
+model Profile {
+  id          String      @id @default(uuid())
+  userId      String      @unique
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName    String
+  title       String?
+  bio         String?
+  skills      String[]    @default([])
+  githubUrl   String?
+  linkedinUrl String?
+  updatedAt   DateTime    @updatedAt
+  milestones  Milestone[]
+
+  @@map("profiles")
+}
+
+model Milestone {
+  id          String    @id @default(uuid())
+  profileId   String
+  profile     Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  status      Status    @default(planning)
+  repoLink    String?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@map("milestones")
+}
